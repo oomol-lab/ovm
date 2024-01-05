@@ -23,11 +23,31 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-var opt *cli.Context
+var (
+	opt *cli.Context
+	log *logger.Context
+)
 
 func init() {
 	cli.Parse()
+	if err := cli.Validate(); err != nil {
+		fmt.Printf("validate flags error: %v\n", err)
+		exit(1)
+	}
+
 	opt = cli.Init()
+	if err := opt.PreSetup(); err != nil {
+		fmt.Printf("pre setup error: %v\n", err)
+		exit(1)
+	}
+
+	l, err := logger.New(opt.LogPath, opt.Name+"-ovm")
+	if err != nil {
+		fmt.Printf("create ovm logger error: %v\n", err)
+		exit(1)
+	} else {
+		log = l
+	}
 }
 
 func main() {
@@ -37,20 +57,9 @@ func main() {
 	// See: https://github.com/crc-org/vfkit/pull/13/commits/906916ab9b92af7a5662fd7fe9246d61d39da4ee
 	signal.Ignore(syscall.SIGPIPE)
 
-	if err := cli.Validate(); err != nil {
-		fmt.Printf("validate flags error: %v\n", err)
-		exit(1)
-	}
-
 	cleanup, err := opt.Setup()
 	if err != nil {
-		fmt.Printf("setup error: %v\n", err)
-		exit(1)
-	}
-
-	log, err := logger.New(opt.LogPath, opt.Name+"-ovm")
-	if err != nil {
-		fmt.Printf("create ovm logger error: %v\n", err)
+		log.Errorf("setup error: %v", err)
 		exit(1)
 	}
 
