@@ -26,6 +26,7 @@ type Context struct {
 	IsCliMode      bool
 	LockFile       string
 	ExecutablePath string
+	BindPID        int
 
 	Endpoint          string
 	SSHPort           int
@@ -106,6 +107,7 @@ func (c *Context) basic() error {
 	c.CPUS = cpus
 	c.MemoryBytes = memory * 1024 * 1024
 	c.IsCliMode = cliMode
+	c.BindPID = bindPID
 
 	if err := os.MkdirAll("/tmp/ovm", 0755); err != nil {
 		return err

@@ -91,6 +91,12 @@ func main() {
 	}
 
 	g.Go(func() error {
+		waitBindPID(ctx, log, opt.BindPID)
+		cancel()
+		return nil
+	})
+
+	g.Go(func() error {
 		return gvproxy.Run(ctx, g, opt)
 	})
 
