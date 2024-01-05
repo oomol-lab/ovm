@@ -14,6 +14,22 @@ import (
 
 var cs = make([]*Context, 0, 3)
 
+func NewWithoutManage(p, n string) (*Context, error) {
+	c := &Context{
+		path: p,
+		name: n,
+		syncWriter: syncWriter{
+			m:    sync.Mutex{},
+			file: nil,
+		},
+	}
+	if err := c.init(); err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
+
 func New(p, n string) (*Context, error) {
 	c := &Context{
 		path: p,
@@ -132,4 +148,8 @@ func (c *Context) Error(message string) {
 
 func (c *Context) Errorf(format string, args ...any) {
 	c.Error(fmt.Sprintf(format, args...))
+}
+
+func (c *Context) Close() {
+	_ = c.file.Close()
 }

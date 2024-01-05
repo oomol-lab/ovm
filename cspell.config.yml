@@ -26,6 +26,9 @@ words:
   - virtualnetwork
   - gvisor
   - vcpu
+  - pidlock
+  - gopsutil
+  - shirou
 dictionaries:
   - companies
   - softwareTerms
