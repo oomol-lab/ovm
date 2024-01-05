@@ -4,6 +4,8 @@
 package cli
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"os"
@@ -17,11 +19,13 @@ import (
 )
 
 type Context struct {
-	Name        string
-	VersionPath string
-	LogPath     string
-	SocketPath  string
-	IsCliMode   bool
+	Name           string
+	VersionPath    string
+	LogPath        string
+	SocketPath     string
+	IsCliMode      bool
+	LockFile       string
+	ExecutablePath string
 
 	Endpoint          string
 	SSHPort           int
@@ -102,6 +106,25 @@ func (c *Context) basic() error {
 	c.CPUS = cpus
 	c.MemoryBytes = memory * 1024 * 1024
 	c.IsCliMode = cliMode
+
+	if err := os.MkdirAll("/tmp/ovm", 0755); err != nil {
+		return err
+	}
+
+	if p, err := os.Executable(); err != nil {
+		return fmt.Errorf("get executable path error: %w", err)
+	} else {
+		p, err := filepath.EvalSymlinks(p)
+		if err != nil {
+			return fmt.Errorf("eval symlink error: %w", err)
+		}
+
+		c.ExecutablePath = strings.ToLower(p)
+
+		sum := md5.Sum([]byte(c.ExecutablePath))
+		hash := hex.EncodeToString(sum[:])
+		c.LockFile = "/tmp/ovm/" + hash + "-" + name + ".pid"
+	}
 
 	return nil
 }

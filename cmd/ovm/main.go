@@ -24,9 +24,9 @@ import (
 )
 
 var (
-	opt  *cli.Context
-	log  *logger.Context
-	sigs = make(chan os.Signal, 1)
+	opt    *cli.Context
+	sigs   = make(chan os.Signal, 1)
+	cleans []func()
 )
 
 func init() {
@@ -41,14 +41,6 @@ func init() {
 		fmt.Printf("pre setup error: %v\n", err)
 		exit(1)
 	}
-
-	l, err := logger.New(opt.LogPath, opt.Name+"-ovm")
-	if err != nil {
-		fmt.Printf("create ovm logger error: %v\n", err)
-		exit(1)
-	} else {
-		log = l
-	}
 }
 
 func main() {
@@ -57,6 +49,21 @@ func main() {
 
 	// See: https://github.com/crc-org/vfkit/pull/13/commits/906916ab9b92af7a5662fd7fe9246d61d39da4ee
 	signal.Ignore(syscall.SIGPIPE)
+
+	{
+		if lock, err := makeSingleInstance(opt.LogPath, opt.LockFile, opt.ExecutablePath); err != nil {
+			fmt.Println("make single instance error:", err)
+			exit(1)
+		} else {
+			cleans = append(cleans, lock.Unlock)
+		}
+	}
+
+	log, err := logger.New(opt.LogPath, opt.Name+"-ovm")
+	if err != nil {
+		fmt.Printf("create ovm logger error: %v\n", err)
+		exit(1)
+	}
 
 	cleanup, err := opt.Setup()
 	if err != nil {
@@ -148,5 +155,9 @@ func exit(exitCode int) {
 	channel.Close()
 	logger.CloseAll()
 	close(sigs)
+
+	for _, clean := range cleans {
+		clean()
+	}
 	os.Exit(exitCode)
 }

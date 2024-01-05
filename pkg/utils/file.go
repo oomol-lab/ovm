@@ -57,3 +57,16 @@ func CreateSparseFile(p string, size int64) error {
 
 	return file.Sync()
 }
+
+func PathExists(p string) (bool, error) {
+	_, err := os.Stat(p)
+	if err == nil {
+		return true, nil
+	}
+
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+
+	return false, err
+}
