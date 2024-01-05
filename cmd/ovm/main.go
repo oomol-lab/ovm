@@ -24,8 +24,9 @@ import (
 )
 
 var (
-	opt *cli.Context
-	log *logger.Context
+	opt  *cli.Context
+	log  *logger.Context
+	sigs = make(chan os.Signal, 1)
 )
 
 func init() {
@@ -91,8 +92,6 @@ func main() {
 	})
 
 	g.Go(func() error {
-		sigs := make(chan os.Signal, 1)
-		defer close(sigs)
 		signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
 
 		select {
@@ -148,5 +147,6 @@ func ready(ctx context.Context, g *errgroup.Group, opt *cli.Context, log *logger
 func exit(exitCode int) {
 	channel.Close()
 	logger.CloseAll()
+	close(sigs)
 	os.Exit(exitCode)
 }
