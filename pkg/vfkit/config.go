@@ -37,7 +37,7 @@ func vmConfig(opt *cli.Context, log *logger.Context) (*config.VirtualMachine, er
 	}
 
 	{
-		log.Infof("vsock deivces: network: '%d-%s', initrd: '%d-%s', ready: '%d-%s'", 1024, opt.SocketNetworkPath, 1025, opt.SocketInitrdVSockPath, 1026, opt.SocketReadyPath)
+		log.Infof("vsock device: network: '%d-%s', initrd: '%d-%s', ready: '%d-%s'", 1024, opt.SocketNetworkPath, 1025, opt.SocketInitrdVSockPath, 1026, opt.SocketReadyPath)
 
 		network, _ := config.VirtioVsockNew(1024, opt.SocketNetworkPath, false)
 		_ = vm.AddDevice(network) // vm network device

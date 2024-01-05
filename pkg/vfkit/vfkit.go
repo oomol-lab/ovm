@@ -140,7 +140,7 @@ func waitForVMState(ctx context.Context, chState <-chan vz.VirtualMachineState, 
 				return nil
 			}
 			if newState == vz.VirtualMachineStateError {
-				return fmt.Errorf("VM state is error, exqcted state: %s", state)
+				return fmt.Errorf("VM state is error, expected state: %s", state)
 			}
 		case <-timeout:
 			return fmt.Errorf("timeout waiting for VM %s", state)
