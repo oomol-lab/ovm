@@ -51,14 +51,21 @@ func Init() *Context {
 	return &Context{}
 }
 
-func (c *Context) Setup() (cleanup func() error, err error) {
+func (c *Context) PreSetup() error {
 	g := errgroup.Group{}
 
 	g.Go(c.basic)
+	g.Go(c.logPath)
+
+	return g.Wait()
+}
+
+func (c *Context) Setup() (cleanup func() error, err error) {
+	g := errgroup.Group{}
+
 	g.Go(c.socketPath)
 	g.Go(c.ssh)
 	g.Go(c.sshPort)
-	g.Go(c.logPath)
 	g.Go(c.target)
 
 	return func() error {
