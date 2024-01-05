@@ -1,0 +1,52 @@
+language: en
+words:
+  - gvproxy
+  - libpod
+  - oomol
+  - podman
+  - vfkit
+  - vsock
+  - rerr
+  - cerr
+  - unexpose
+  - resolv
+  - infof
+  - warnf
+  - zoneinfo
+  - werr
+  - vsocks
+  - laddr
+  - tcpproxy
+  - virtio
+  - virtiofs
+  - errgroup
+  - rootfs
+  - localtime
+  - sshclient
+  - virtualnetwork
+  - gvisor
+  - vcpu
+dictionaries:
+  - companies
+  - softwareTerms
+  - misc
+  - typescript
+  - node
+  - rust
+  - golang
+  - html
+  - css
+  - bash
+  - docker
+  - fonts
+  - filetypes
+  - npm
+  - fullstack
+  - en_US
+  - en-gb
+ignorePaths:
+  - logs/
+  - out/
+  - vendor/
+  - CHANGELOG.md
+  - cspell.config.yml
