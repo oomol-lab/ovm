@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"runtime"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/crc-org/vfkit/pkg/vf"
 	"github.com/oomol-lab/ovm/pkg/channel"
 	"github.com/oomol-lab/ovm/pkg/cli"
+	"github.com/oomol-lab/ovm/pkg/ipc/server"
 	"github.com/oomol-lab/ovm/pkg/logger"
 	"golang.org/x/sync/errgroup"
 )
@@ -72,6 +74,15 @@ func Run(ctx context.Context, g *errgroup.Group, opt *cli.Context) error {
 			}
 		}
 	})
+
+	{
+		nl, err := net.Listen("unix", opt.RestfulSocketPath)
+		if err != nil {
+			log.Errorf("create server failed: %v", err)
+			return err
+		}
+		server.New(vm, vmC, log, opt).Start(ctx, g, nl)
+	}
 
 	if err := vm.Start(); err != nil {
 		return err
