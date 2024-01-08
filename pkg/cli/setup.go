@@ -39,6 +39,7 @@ type Context struct {
 	SocketNetworkPath     string
 	SocketInitrdVSockPath string
 	SocketReadyPath       string
+	RestfulSocketPath     string
 
 	CPUS         uint
 	MemoryBytes  uint64
@@ -142,6 +143,7 @@ func (c *Context) socketPath() error {
 	c.SocketNetworkPath = path.Join(p, name+"-vfkit-network.sock")
 	c.SocketInitrdVSockPath = path.Join(p, name+"-initrd-vsock.sock")
 	c.SocketReadyPath = path.Join(p, name+"-ready.sock")
+	c.RestfulSocketPath = path.Join(p, name+"-restful.sock")
 
 	c.Endpoint = "unix://" + c.SocketNetworkPath
 
