@@ -113,6 +113,7 @@ func (s *Server) Start(ctx context.Context, g *errgroup.Group, nl net.Listener) 
 }
 
 func (s *Server) info() *infoResponse {
+	s.log.Info("request /info")
 	return &infoResponse{
 		PodmanSocketPath: s.opt.ForwardSocketPath,
 	}
