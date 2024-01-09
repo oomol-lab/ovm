@@ -16,7 +16,7 @@ import (
 	"github.com/oomol-lab/ovm/pkg/channel"
 	"github.com/oomol-lab/ovm/pkg/cli"
 	"github.com/oomol-lab/ovm/pkg/ipc/event"
-	"github.com/oomol-lab/ovm/pkg/ipc/server"
+	"github.com/oomol-lab/ovm/pkg/ipc/restful"
 	"github.com/oomol-lab/ovm/pkg/logger"
 	"golang.org/x/sync/errgroup"
 )
@@ -48,6 +48,15 @@ func Run(ctx context.Context, g *errgroup.Group, opt *cli.Context) error {
 		return err
 	}
 
+	{
+		nl, err := net.Listen("unix", opt.RestfulSocketPath)
+		if err != nil {
+			log.Errorf("create server failed: %v", err)
+			return err
+		}
+		restful.New(vm, vmC, log, opt).Start(ctx, g, nl)
+	}
+
 	select {
 	case <-ctx.Done():
 		log.Infof("skip start VM, because context done")
@@ -75,15 +84,6 @@ func Run(ctx context.Context, g *errgroup.Group, opt *cli.Context) error {
 			}
 		}
 	})
-
-	{
-		nl, err := net.Listen("unix", opt.RestfulSocketPath)
-		if err != nil {
-			log.Errorf("create server failed: %v", err)
-			return err
-		}
-		server.New(vm, vmC, log, opt).Start(ctx, g, nl)
-	}
 
 	if err := vm.Start(); err != nil {
 		return err
