@@ -9,19 +9,20 @@ import (
 )
 
 var (
-	name       string
-	logPath    string
-	socketPath string
-	sshKeyPath string
-	cpus       uint
-	memory     uint64
-	kernelPath string
-	initrdPath string
-	rootfsPath string
-	targetPath string
-	versions   string
-	cliMode    bool
-	bindPID    int
+	name            string
+	logPath         string
+	socketPath      string
+	sshKeyPath      string
+	cpus            uint
+	memory          uint64
+	kernelPath      string
+	initrdPath      string
+	rootfsPath      string
+	targetPath      string
+	versions        string
+	eventSocketPath string
+	cliMode         bool
+	bindPID         int
 )
 
 func Parse() {
@@ -36,6 +37,7 @@ func Parse() {
 	flag.StringVar(&rootfsPath, "rootfs-path", "", "Path to rootfs image")
 	flag.StringVar(&targetPath, "target-path", "", "Store disk images and kernel/initrd/rootfs files")
 	flag.StringVar(&versions, "versions", "", "Set version")
+	flag.StringVar(&eventSocketPath, "event-socket-path", "", "Send event to this socket")
 	flag.BoolVar(&cliMode, "cli", false, "Run in CLI mode")
 	flag.IntVar(&bindPID, "bind-pid", 0, "OVM will exit when the bound pid exited")
 

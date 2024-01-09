@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/oomol-lab/ovm/pkg/cli"
+	"github.com/oomol-lab/ovm/pkg/ipc/event"
 	"github.com/oomol-lab/ovm/pkg/logger"
 	"github.com/oomol-lab/ovm/pkg/utils"
 	"golang.org/x/net/context"
@@ -55,6 +56,9 @@ func ignition(ctx context.Context, g *errgroup.Group, opt *cli.Context, log *log
 		if _, werr := conn.Write([]byte(cmdStr)); werr != nil {
 			log.Errorf("write ignition command failed: %v", werr)
 			err = werr
+		} else {
+			log.Info("write ignition command success")
+			event.Notify(event.IgnitionDone)
 		}
 
 		if cerr := conn.Close(); cerr != nil {
