@@ -12,7 +12,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"github.com/oomol-lab/ovm/pkg/utils"
 	"golang.org/x/sync/errgroup"
@@ -50,8 +49,6 @@ type Context struct {
 	TargetPath   string
 	DiskDataPath string
 	DiskTmpPath  string
-
-	cleanups []func() error
 }
 
 func Init() *Context {
@@ -67,7 +64,7 @@ func (c *Context) PreSetup() error {
 	return g.Wait()
 }
 
-func (c *Context) Setup() (cleanup func() error, err error) {
+func (c *Context) Setup() error {
 	g := errgroup.Group{}
 
 	g.Go(c.socketPath)
@@ -75,33 +72,7 @@ func (c *Context) Setup() (cleanup func() error, err error) {
 	g.Go(c.sshPort)
 	g.Go(c.target)
 
-	return func() error {
-		l := len(c.cleanups)
-		if l == 0 {
-			return nil
-		}
-
-		errs := make([]error, 0, l)
-		wg := sync.WaitGroup{}
-
-		wg.Add(l)
-		for _, cleanup := range c.cleanups {
-			go func(cleanup func() error) {
-				defer wg.Done()
-				if err := cleanup(); err != nil {
-					errs = append(errs, err)
-				}
-			}(cleanup)
-		}
-
-		wg.Wait()
-
-		if len(errs) > 0 {
-			return fmt.Errorf("cleanup error: %v", errs)
-		}
-
-		return nil
-	}, g.Wait()
+	return g.Wait()
 }
 
 func (c *Context) basic() error {
@@ -156,10 +127,6 @@ func (c *Context) socketPath() error {
 	if err := os.MkdirAll(c.SocketPath, 0755); err != nil {
 		return err
 	}
-
-	c.cleanups = append(c.cleanups, func() error {
-		return os.RemoveAll(c.SocketPath)
-	})
 
 	return nil
 }

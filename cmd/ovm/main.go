@@ -63,8 +63,7 @@ func main() {
 		exit(1)
 	}
 
-	cleanup, err := opt.Setup()
-	if err != nil {
+	if err := opt.Setup(); err != nil {
 		log.Errorf("setup error: %v", err)
 		exit(1)
 	}
@@ -86,19 +85,6 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	g, ctx := errgroup.WithContext(ctx)
-
-	g.Go(func() error {
-		<-ctx.Done()
-		log.Info("cli setup cleanup...")
-
-		if err := cleanup(); err != nil {
-			log.Errorf("cleanup failed: %v", err)
-		}
-
-		log.Info("cli setup cleanup done")
-
-		return nil
-	})
 
 	if err := ready(ctx, g, opt, log); err != nil {
 		log.Errorf("ready failed: %v", err)
