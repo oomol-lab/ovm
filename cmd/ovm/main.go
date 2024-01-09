@@ -17,6 +17,7 @@ import (
 	"github.com/oomol-lab/ovm/pkg/channel"
 	"github.com/oomol-lab/ovm/pkg/cli"
 	"github.com/oomol-lab/ovm/pkg/gvproxy"
+	"github.com/oomol-lab/ovm/pkg/ipc/event"
 	"github.com/oomol-lab/ovm/pkg/logger"
 	"github.com/oomol-lab/ovm/pkg/utils"
 	"github.com/oomol-lab/ovm/pkg/vfkit"
@@ -44,9 +45,6 @@ func init() {
 }
 
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
-	g, ctx := errgroup.WithContext(ctx)
-
 	// See: https://github.com/crc-org/vfkit/pull/13/commits/906916ab9b92af7a5662fd7fe9246d61d39da4ee
 	signal.Ignore(syscall.SIGPIPE)
 
@@ -70,6 +68,24 @@ func main() {
 		log.Errorf("setup error: %v", err)
 		exit(1)
 	}
+
+	{
+		if err := event.Init(opt); err != nil {
+			log.Errorf("event init error: %v", err)
+			exit(1)
+		}
+
+		g := errgroup.Group{}
+		event.Subscribe(&g)
+		cleans = append(cleans, func() {
+			_ = g.Wait()
+		})
+	}
+
+	event.Notify(event.Initializing)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	g, ctx := errgroup.WithContext(ctx)
 
 	g.Go(func() error {
 		<-ctx.Done()
@@ -119,6 +135,7 @@ func main() {
 
 	if err := g.Wait(); err != nil {
 		log.Errorf("main error: %v", err)
+		event.NotifyError(err)
 		exit(1)
 	} else {
 		log.Info("main exit")
@@ -144,6 +161,7 @@ func ready(ctx context.Context, g *errgroup.Group, opt *cli.Context, log *logger
 			err = rerr
 		} else {
 			channel.NotifyVMReady()
+			event.Notify(event.VMReady)
 		}
 
 		if cerr := conn.Close(); cerr != nil {
@@ -158,12 +176,12 @@ func ready(ctx context.Context, g *errgroup.Group, opt *cli.Context, log *logger
 }
 
 func exit(exitCode int) {
-	channel.Close()
-	logger.CloseAll()
-	close(sigs)
-
+	event.Notify(event.Exit)
 	for _, clean := range cleans {
 		clean()
 	}
+	close(sigs)
+	channel.Close()
+	logger.CloseAll()
 	os.Exit(exitCode)
 }

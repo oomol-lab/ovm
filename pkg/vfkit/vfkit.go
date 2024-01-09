@@ -15,6 +15,7 @@ import (
 	"github.com/crc-org/vfkit/pkg/vf"
 	"github.com/oomol-lab/ovm/pkg/channel"
 	"github.com/oomol-lab/ovm/pkg/cli"
+	"github.com/oomol-lab/ovm/pkg/ipc/event"
 	"github.com/oomol-lab/ovm/pkg/ipc/server"
 	"github.com/oomol-lab/ovm/pkg/logger"
 	"golang.org/x/sync/errgroup"
@@ -87,6 +88,8 @@ func Run(ctx context.Context, g *errgroup.Group, opt *cli.Context) error {
 	if err := vm.Start(); err != nil {
 		return err
 	}
+
+	event.Notify(event.IgnitionProgress)
 
 	if err := ignition(ctx, g, opt, log); err != nil {
 		log.Errorf("ignition failed: %v", err)

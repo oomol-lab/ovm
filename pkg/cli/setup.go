@@ -19,14 +19,15 @@ import (
 )
 
 type Context struct {
-	Name           string
-	VersionPath    string
-	LogPath        string
-	SocketPath     string
-	IsCliMode      bool
-	LockFile       string
-	ExecutablePath string
-	BindPID        int
+	Name            string
+	VersionPath     string
+	LogPath         string
+	SocketPath      string
+	IsCliMode       bool
+	LockFile        string
+	ExecutablePath  string
+	BindPID         int
+	EventSocketPath string
 
 	Endpoint          string
 	SSHPort           int
@@ -109,6 +110,7 @@ func (c *Context) basic() error {
 	c.MemoryBytes = memory * 1024 * 1024
 	c.IsCliMode = cliMode
 	c.BindPID = bindPID
+	c.EventSocketPath = eventSocketPath
 
 	if err := os.MkdirAll("/tmp/ovm", 0755); err != nil {
 		return err

@@ -20,6 +20,7 @@ import (
 	"github.com/containers/gvisor-tap-vsock/pkg/virtualnetwork"
 	"github.com/oomol-lab/ovm/pkg/channel"
 	"github.com/oomol-lab/ovm/pkg/cli"
+	"github.com/oomol-lab/ovm/pkg/ipc/event"
 	"github.com/oomol-lab/ovm/pkg/logger"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
@@ -115,6 +116,7 @@ func Run(ctx context.Context, g *errgroup.Group, opt *cli.Context) error {
 	httpServe(ctx, g, ln, mux)
 
 	channel.NotifyGVProxyReady()
+	event.Notify(event.GVProxyReady)
 
 	g.Go(func() error {
 		select {
