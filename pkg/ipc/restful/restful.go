@@ -49,9 +49,19 @@ func New(vz *vz.VirtualMachine, vmC *config.VirtualMachine, log *logger.Context,
 func (s *Restful) mux() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/info", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "get only", http.StatusBadRequest)
+			return
+		}
+
 		_ = json.NewEncoder(w).Encode(s.info())
 	})
 	mux.HandleFunc("/state", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "get only", http.StatusBadRequest)
+			return
+		}
+
 		_ = json.NewEncoder(w).Encode(s.state())
 	})
 	mux.HandleFunc("/pause", func(w http.ResponseWriter, r *http.Request) {
