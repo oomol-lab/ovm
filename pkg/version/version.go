@@ -6,6 +6,8 @@ package version
 import (
 	"encoding/json"
 	"os"
+
+	"github.com/oomol-lab/ovm/pkg/utils"
 )
 
 type List struct {
@@ -49,7 +51,13 @@ func (l *List) Write() error {
 	return os.WriteFile(l.versionPath, data, 0644)
 }
 
-func (l *List) HasUpdate(t, v string) bool {
+func (l *List) NeedCopy(p, t, v string) (bool, error) {
+	if ok, err := utils.PathExists(p); err != nil {
+		return false, err
+	} else if !ok {
+		return true, nil
+	}
+
 	var r string
 	switch t {
 	case "kernel":
@@ -62,5 +70,5 @@ func (l *List) HasUpdate(t, v string) bool {
 		r = l.DataImg
 	}
 
-	return r != v
+	return r != v, nil
 }
