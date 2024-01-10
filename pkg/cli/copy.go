@@ -68,26 +68,38 @@ func (c *versionContext) copy() error {
 	}
 
 	{
-		if v.HasUpdate("kernel", c.kernel) {
-			addCopyTask(&g, kernelPath, c.targetPath)
+		distPath := path.Join(targetPath, filepath.Base(kernelPath))
+		if need, err := v.NeedCopy(distPath, "kernel", c.kernel); need {
+			addCopyTask(&g, kernelPath, distPath)
+		} else if err != nil {
+			return err
 		}
 		v.Kernel = c.kernel
 	}
 	{
-		if v.HasUpdate("initrd", c.initrd) {
-			addCopyTask(&g, initrdPath, c.targetPath)
+		distPath := path.Join(targetPath, filepath.Base(initrdPath))
+		if need, err := v.NeedCopy(distPath, "initrd", c.initrd); need {
+			addCopyTask(&g, initrdPath, distPath)
+		} else if err != nil {
+			return err
 		}
 		v.Initrd = c.initrd
 	}
 	{
-		if v.HasUpdate("rootfs", c.rootfs) {
-			addCopyTask(&g, rootfsPath, c.targetPath)
+		distPath := path.Join(targetPath, filepath.Base(rootfsPath))
+		if need, err := v.NeedCopy(distPath, "rootfs", c.rootfs); need {
+			addCopyTask(&g, rootfsPath, distPath)
+		} else if err != nil {
+			return err
 		}
 		v.Rootfs = c.rootfs
 	}
 	{
-		if v.HasUpdate("data_img", c.dataImg) {
-			addCreateSparseTask(&g, c.dataImgPath, c.targetPath)
+		distPath := path.Join(targetPath, filepath.Base(c.dataImgPath))
+		if need, err := v.NeedCopy(distPath, "data_img", c.dataImg); need {
+			addCreateSparseTask(&g, distPath)
+		} else if err != nil {
+			return err
 		}
 		v.DataImg = c.dataImg
 	}
@@ -99,19 +111,18 @@ func (c *versionContext) copy() error {
 	return v.Write()
 }
 
-func addCopyTask(g *errgroup.Group, srcPath, targetPath string) {
+func addCopyTask(g *errgroup.Group, srcPath, target string) {
 	g.Go(func() error {
-		return utils.Copy(srcPath, path.Join(targetPath, filepath.Base(srcPath)))
+		return utils.Copy(srcPath, target)
 	})
 }
 
-func addCreateSparseTask(g *errgroup.Group, srcPath, targetPath string) {
+func addCreateSparseTask(g *errgroup.Group, target string) {
 	g.Go(func() error {
-		p := path.Join(targetPath, filepath.Base(srcPath))
-		if err := os.RemoveAll(p); err != nil {
+		if err := os.RemoveAll(target); err != nil {
 			return err
 		}
 
-		return utils.CreateSparseFile(p, 8*1024*1024*1024*1024)
+		return utils.CreateSparseFile(target, 8*1024*1024*1024*1024)
 	})
 }
