@@ -32,7 +32,12 @@ func (l *List) Read() error {
 		return err
 	}
 
-	return json.Unmarshal(data, &l)
+	if err := json.Unmarshal(data, &l); err != nil {
+		// delete and rebuild when file parsing fails.
+		return os.RemoveAll(l.versionPath)
+	}
+
+	return nil
 }
 
 func (l *List) Write() error {
