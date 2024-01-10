@@ -96,7 +96,7 @@ func Run(ctx context.Context, g *errgroup.Group, opt *cli.Context) error {
 		return err
 	}
 
-	if err := waitForVMState(context.Background(), vmState, vz.VirtualMachineStateRunning, time.After(5*time.Second)); err != nil {
+	if err := waitForVMState(vmState, vz.VirtualMachineStateRunning, time.After(5*time.Second)); err != nil {
 		log.Errorf("waiting for VM to start failed: %v", err)
 		return err
 	}
@@ -120,7 +120,7 @@ func Run(ctx context.Context, g *errgroup.Group, opt *cli.Context) error {
 	})
 
 	g.Go(func() error {
-		if err := waitForVMState(ctx, vmState, vz.VirtualMachineStateStopped, nil); err != nil {
+		if err := waitForVMState(vmState, vz.VirtualMachineStateStopped, nil); err != nil {
 			log.Errorf("waiting for VM to stop failed: %v", err)
 			return err
 		}
@@ -146,7 +146,7 @@ func Run(ctx context.Context, g *errgroup.Group, opt *cli.Context) error {
 	return nil
 }
 
-func waitForVMState(ctx context.Context, chState <-chan vz.VirtualMachineState, state vz.VirtualMachineState, timeout <-chan time.Time) error {
+func waitForVMState(chState <-chan vz.VirtualMachineState, state vz.VirtualMachineState, timeout <-chan time.Time) error {
 	for {
 		select {
 		case newState := <-chState:
@@ -158,8 +158,6 @@ func waitForVMState(ctx context.Context, chState <-chan vz.VirtualMachineState, 
 			}
 		case <-timeout:
 			return fmt.Errorf("timeout waiting for VM %s", state)
-		case <-ctx.Done():
-			return fmt.Errorf("exit waiting for VM %s, because context done", state)
 		}
 	}
 }
