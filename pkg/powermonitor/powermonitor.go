@@ -33,7 +33,7 @@ func Setup(ctx context.Context, g *errgroup.Group, opt *cli.Context, log *logger
 
 	g.Go(func() error {
 		for activity := range ch {
-			if activity.Type == notifier.Awake && opt.TimeSync {
+			if activity.Type == notifier.Awake {
 				log.Info("start sync time")
 				if err := syncTime(); err != nil {
 					return fmt.Errorf("sync time failed: %w", err)
