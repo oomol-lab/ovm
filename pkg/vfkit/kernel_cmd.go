@@ -31,8 +31,13 @@ func kernelCMD(opt *cli.Context) string {
 
 		// record Systemd targets logs to console
 		sb.WriteString("systemd.default_standard_output=journal+console ")
-		sb.WriteString("systemd.default_standard_error=journal+console debug")
+		sb.WriteString("systemd.default_standard_error=journal+console ")
 	}
 
-	return sb.String()
+	// enable debug logs
+	if opt.IsCliMode {
+		sb.WriteString("debug ")
+	}
+
+	return strings.TrimRight(sb.String(), " ")
 }
