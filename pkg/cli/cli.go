@@ -23,6 +23,7 @@ var (
 	eventSocketPath string
 	cliMode         bool
 	bindPID         int
+	timeSync        bool
 )
 
 func Parse() {
@@ -40,6 +41,7 @@ func Parse() {
 	flag.StringVar(&eventSocketPath, "event-socket-path", "", "Send event to this socket")
 	flag.BoolVar(&cliMode, "cli", false, "Run in CLI mode")
 	flag.IntVar(&bindPID, "bind-pid", 0, "OVM will exit when the bound pid exited")
+	flag.BoolVar(&timeSync, "time-sync", true, "Sync time when the virtual machine is awake")
 
 	flag.Parse()
 

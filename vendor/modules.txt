@@ -72,6 +72,9 @@ github.com/pkg/errors
 # github.com/power-devops/perfstat v0.0.0-20221212215047-62379fc7944b
 ## explicit; go 1.14
 github.com/power-devops/perfstat
+# github.com/prashantgupta24/mac-sleep-notifier v1.0.1
+## explicit
+github.com/prashantgupta24/mac-sleep-notifier/notifier
 # github.com/shirou/gopsutil/v3 v3.23.12
 ## explicit; go 1.15
 github.com/shirou/gopsutil/v3/common

@@ -18,6 +18,7 @@ import (
 	"github.com/oomol-lab/ovm/pkg/ipc/event"
 	"github.com/oomol-lab/ovm/pkg/ipc/restful"
 	"github.com/oomol-lab/ovm/pkg/logger"
+	"github.com/oomol-lab/ovm/pkg/powermonitor"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -84,6 +85,11 @@ func Run(ctx context.Context, g *errgroup.Group, opt *cli.Context) error {
 			}
 		}
 	})
+
+	if err := powermonitor.Setup(ctx, g, opt, log); err != nil {
+		log.Errorf("setup powermonitor failed: %v", err)
+		return err
+	}
 
 	if err := vm.Start(); err != nil {
 		return err

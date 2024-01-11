@@ -47,6 +47,9 @@ func vmConfig(opt *cli.Context, log *logger.Context) (*config.VirtualMachine, er
 
 		ready, _ := config.VirtioVsockNew(1026, opt.SocketReadyPath, false)
 		_ = vm.AddDevice(ready) // vm is ready (https://github.com/oomol-lab/ovm-core/blob/7c85e7603da0873099c1a288be1f70e44e24c1f5/buildroot_external/board/ovm/ready/rootfs-overlay/etc/systemd/system/ready.service)
+
+		timeSync, _ := config.VirtioVsockNew(1027, opt.TimeSyncSocketPath, false)
+		_ = vm.AddDevice(timeSync) // sync vm time
 	}
 
 	if opt.IsCliMode {
