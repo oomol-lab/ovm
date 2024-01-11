@@ -27,7 +27,6 @@ type Context struct {
 	ExecutablePath  string
 	BindPID         int
 	EventSocketPath string
-	TimeSync        bool
 
 	Endpoint          string
 	SSHPort           int
@@ -84,7 +83,6 @@ func (c *Context) basic() error {
 	c.IsCliMode = cliMode
 	c.BindPID = bindPID
 	c.EventSocketPath = eventSocketPath
-	c.TimeSync = timeSync
 
 	if err := os.MkdirAll("/tmp/ovm", 0755); err != nil {
 		return err
