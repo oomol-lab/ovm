@@ -29,6 +29,8 @@ words:
   - pidlock
   - gopsutil
   - shirou
+  - clocksource
+  - hpet
 dictionaries:
   - companies
   - softwareTerms
