@@ -10,6 +10,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/oomol-lab/ovm/pkg/channel"
 	"github.com/oomol-lab/ovm/pkg/logger"
 	"golang.org/x/sync/errgroup"
 )
@@ -43,25 +44,38 @@ func initTimeSync(ctx context.Context, g *errgroup.Group, socketPath string, log
 		return nil
 	})
 
-	return nil
-}
+	g.Go(func() error {
+		for {
+			select {
+			case <-ctx.Done():
+				log.Info("cancel sync time event receive")
+				return nil
+			case <-channel.ReceiveSyncTime():
+				log.Info("receive sync time event")
+				break
+			}
 
-func syncTime() error {
-	if timeSyncConn == nil {
-		return nil
-	}
+			if timeSyncConn == nil {
+				continue
+			}
 
-	command := []byte(fmt.Sprintf("date -s @%d && hwclock -w", time.Now().Unix()))
-	length := len(command)
-	header := make([]byte, 2)
-	binary.LittleEndian.PutUint16(header, uint16(length))
+			log.Info("start sync time")
 
-	if err := writeConn(header); err != nil {
-		return fmt.Errorf("write time sync header error: %w", err)
-	}
-	if err := writeConn(command); err != nil {
-		return fmt.Errorf("write time sync command error: %w", err)
-	}
+			command := []byte(fmt.Sprintf("date -s @%d && hwclock -w", time.Now().Unix()))
+			length := len(command)
+			header := make([]byte, 2)
+			binary.LittleEndian.PutUint16(header, uint16(length))
+
+			if err := writeConn(header); err != nil {
+				return fmt.Errorf("write time sync header error: %w", err)
+			}
+			if err := writeConn(command); err != nil {
+				return fmt.Errorf("write time sync command error: %w", err)
+			}
+
+			log.Info("sync time success")
+		}
+	})
 
 	return nil
 }
