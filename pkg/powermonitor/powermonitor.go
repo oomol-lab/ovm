@@ -5,8 +5,8 @@ package powermonitor
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/oomol-lab/ovm/pkg/channel"
 	"github.com/oomol-lab/ovm/pkg/cli"
 	"github.com/oomol-lab/ovm/pkg/logger"
 	"github.com/prashantgupta24/mac-sleep-notifier/notifier"
@@ -34,10 +34,7 @@ func Setup(ctx context.Context, g *errgroup.Group, opt *cli.Context, log *logger
 	g.Go(func() error {
 		for activity := range ch {
 			if activity.Type == notifier.Awake {
-				log.Info("start sync time")
-				if err := syncTime(); err != nil {
-					return fmt.Errorf("sync time failed: %w", err)
-				}
+				channel.NotifySyncTime()
 			}
 		}
 

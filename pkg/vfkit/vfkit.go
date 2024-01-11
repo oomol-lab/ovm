@@ -71,6 +71,11 @@ func Run(ctx context.Context, g *errgroup.Group, opt *cli.Context) error {
 		break
 	}
 
+	if err := powermonitor.Setup(ctx, g, opt, log); err != nil {
+		log.Errorf("setup powermonitor failed: %v", err)
+		return err
+	}
+
 	vmState := make(chan vz.VirtualMachineState, 1)
 
 	g.Go(func() error {
@@ -79,17 +84,17 @@ func Run(ctx context.Context, g *errgroup.Group, opt *cli.Context) error {
 			log.Infof("VM state changed: %s", state)
 			vmState <- state
 
-			if state == vz.VirtualMachineStateStopped || state == vz.VirtualMachineStateError {
+			switch state {
+			case vz.VirtualMachineStateStopped, vz.VirtualMachineStateError:
 				log.Infof("stop listen VM state, because VM interruption, current state is: %s", state)
 				return nil
+			case vz.VirtualMachineStateResuming:
+				channel.NotifySyncTime()
+			default:
+				// do nothing
 			}
 		}
 	})
-
-	if err := powermonitor.Setup(ctx, g, opt, log); err != nil {
-		log.Errorf("setup powermonitor failed: %v", err)
-		return err
-	}
 
 	if err := vm.Start(); err != nil {
 		return err
