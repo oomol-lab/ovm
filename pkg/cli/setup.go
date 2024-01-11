@@ -27,6 +27,7 @@ type Context struct {
 	ExecutablePath  string
 	BindPID         int
 	EventSocketPath string
+	TimeSync        bool
 
 	Endpoint          string
 	SSHPort           int
@@ -40,6 +41,7 @@ type Context struct {
 	SocketInitrdVSockPath string
 	SocketReadyPath       string
 	RestfulSocketPath     string
+	TimeSyncSocketPath    string
 
 	CPUS         uint
 	MemoryBytes  uint64
@@ -82,6 +84,7 @@ func (c *Context) basic() error {
 	c.IsCliMode = cliMode
 	c.BindPID = bindPID
 	c.EventSocketPath = eventSocketPath
+	c.TimeSync = timeSync
 
 	if err := os.MkdirAll("/tmp/ovm", 0755); err != nil {
 		return err
@@ -117,6 +120,7 @@ func (c *Context) socketPath() error {
 	c.SocketInitrdVSockPath = path.Join(p, name+"-initrd-vsock.sock")
 	c.SocketReadyPath = path.Join(p, name+"-ready.sock")
 	c.RestfulSocketPath = path.Join(p, name+"-restful.sock")
+	c.TimeSyncSocketPath = path.Join(p, name+"-sync-time.sock")
 
 	c.Endpoint = "unix://" + c.SocketNetworkPath
 
