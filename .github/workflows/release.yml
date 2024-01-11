@@ -1,0 +1,50 @@
+name: Release
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Set up Go
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+        with:
+          go-version: 1.21.3
+
+      - name: Setup Codesign
+        run: |
+          echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
+          security create-keychain -p action build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p action build.keychain
+          security import certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PWD -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k action build.keychain
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+
+      - name: Build
+        run: make build
+        env:
+          CODESIGN_IDENTITY: ${{ secrets.MACOS_CODESIGN_IDENTITY }}
+
+      - name: sha256sum
+        working-directory: out
+        run: sha256sum * > ./SHA256SUM.txt
+
+      - name: Release
+        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v0.1.15
+        with:
+          files: |
+            out/*
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
