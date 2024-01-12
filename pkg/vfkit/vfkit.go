@@ -71,7 +71,7 @@ func Run(ctx context.Context, g *errgroup.Group, opt *cli.Context) error {
 		break
 	}
 
-	if err := powermonitor.Setup(ctx, g, opt, log); err != nil {
+	if err := powermonitor.Setup(ctx, g, opt, vm, log); err != nil {
 		log.Errorf("setup powermonitor failed: %v", err)
 		return err
 	}
