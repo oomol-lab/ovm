@@ -23,6 +23,7 @@ var (
 	eventSocketPath string
 	cliMode         bool
 	bindPID         int
+	powerSaveMode   bool
 )
 
 func Parse() {
@@ -40,6 +41,7 @@ func Parse() {
 	flag.StringVar(&eventSocketPath, "event-socket-path", "", "Send event to this socket")
 	flag.BoolVar(&cliMode, "cli", false, "Run in CLI mode")
 	flag.IntVar(&bindPID, "bind-pid", 0, "OVM will exit when the bound pid exited")
+	flag.BoolVar(&powerSaveMode, "power-save-mode", false, "Enable power save mode")
 
 	flag.Parse()
 
