@@ -42,6 +42,7 @@ type Context struct {
 	SocketReadyPath       string
 	RestfulSocketPath     string
 	TimeSyncSocketPath    string
+	SSHAuthSocketPath     string
 
 	CPUS         uint
 	MemoryBytes  uint64
@@ -121,6 +122,7 @@ func (c *Context) socketPath() error {
 	c.SocketReadyPath = path.Join(p, name+"-ready.sock")
 	c.RestfulSocketPath = path.Join(p, name+"-restful.sock")
 	c.TimeSyncSocketPath = path.Join(p, name+"-sync-time.sock")
+	c.SSHAuthSocketPath = path.Join(p, name+"-ssh-auth.sock")
 
 	c.Endpoint = "unix://" + c.SocketNetworkPath
 
