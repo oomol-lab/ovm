@@ -50,6 +50,9 @@ func vmConfig(opt *cli.Context, log *logger.Context) (*config.VirtualMachine, er
 
 		timeSync, _ := config.VirtioVsockNew(1027, opt.TimeSyncSocketPath, false)
 		_ = vm.AddDevice(timeSync) // sync vm time
+
+		sshAuth, _ := config.VirtioVsockNew(1028, opt.SSHAuthSocketPath, false)
+		_ = vm.AddDevice(sshAuth)
 	}
 
 	if opt.IsCliMode {

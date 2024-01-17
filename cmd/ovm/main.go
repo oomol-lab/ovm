@@ -19,6 +19,7 @@ import (
 	"github.com/oomol-lab/ovm/pkg/gvproxy"
 	"github.com/oomol-lab/ovm/pkg/ipc/event"
 	"github.com/oomol-lab/ovm/pkg/logger"
+	"github.com/oomol-lab/ovm/pkg/sshagentsock"
 	"github.com/oomol-lab/ovm/pkg/utils"
 	"github.com/oomol-lab/ovm/pkg/vfkit"
 	"golang.org/x/sync/errgroup"
@@ -81,6 +82,12 @@ func main() {
 		})
 	}
 
+	agent, err := sshagentsock.Start(opt.SSHAuthSocketPath, log)
+	if err != nil {
+		log.Errorf("start ssh agent sock error: %v", err)
+		exit(1)
+	}
+
 	event.Notify(event.Initializing)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -91,6 +98,11 @@ func main() {
 		cancel()
 		exit(1)
 	}
+
+	g.Go(func() error {
+		<-ctx.Done()
+		return agent.Close()
+	})
 
 	g.Go(func() error {
 		waitBindPID(ctx, log, opt.BindPID)
