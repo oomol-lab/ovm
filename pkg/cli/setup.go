@@ -19,7 +19,7 @@ import (
 
 type Context struct {
 	Name            string
-	VersionPath     string
+	VersionsPath    string
 	LogPath         string
 	SocketPath      string
 	IsCliMode       bool
@@ -221,22 +221,20 @@ func (c *Context) target() error {
 		return err
 	}
 
-	c.VersionPath = path.Join(c.TargetPath, "version.json")
+	c.VersionsPath = path.Join(c.TargetPath, "versions.json")
 	c.KernelPath = path.Join(c.TargetPath, filepath.Base(kernelPath))
 	c.InitrdPath = path.Join(c.TargetPath, filepath.Base(initrdPath))
 	c.RootfsPath = path.Join(c.TargetPath, filepath.Base(rootfsPath))
 	c.DiskDataPath = path.Join(c.TargetPath, "data.img")
 	c.DiskTmpPath = path.Join(c.TargetPath, "tmp.img")
 
-	{
-		v := newVersion(c.TargetPath, c.VersionPath, c.DiskDataPath)
-		if err := v.parseWithCmd(); err != nil {
-			return err
-		}
+	target, err := newTarget(c.TargetPath, kernelPath, initrdPath, rootfsPath, c.DiskDataPath, c.VersionsPath)
+	if err != nil {
+		return err
+	}
 
-		if err := v.copy(); err != nil {
-			return err
-		}
+	if err := target.handle(); err != nil {
+		return err
 	}
 
 	if _, err := os.Stat(c.DiskTmpPath); err != nil {
