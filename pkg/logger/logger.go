@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-var cs = make([]*Context, 0, 3)
+var cs = make([]*Context, 0, 10)
 
 func NewWithoutManage(p, n string) (*Context, error) {
 	c := &Context{
@@ -92,7 +92,7 @@ type Context struct {
 }
 
 func (c *Context) init() error {
-	max := 3
+	max := 5
 	for i := max - 1; i > 0; i-- {
 		logName := c.name
 		if i > 1 {
