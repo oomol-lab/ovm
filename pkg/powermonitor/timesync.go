@@ -61,7 +61,7 @@ func initTimeSync(ctx context.Context, g *errgroup.Group, socketPath string, log
 
 			log.Info("start sync time")
 
-			command := []byte(fmt.Sprintf("date -s @%d && hwclock -w --verbose", time.Now().Unix()))
+			command := []byte(fmt.Sprintf("date -s @%d", time.Now().Unix()))
 			length := len(command)
 			header := make([]byte, 2)
 			binary.LittleEndian.PutUint16(header, uint16(length))
