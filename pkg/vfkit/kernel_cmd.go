@@ -43,8 +43,7 @@ func kernelCMD(opt *cli.Context) string {
 		sb.WriteString("systemd.default_standard_error=journal+console ")
 	}
 
-	// enable debug logs
-	if opt.IsCliMode {
+	if opt.KernelDebug {
 		sb.WriteString("debug ")
 	}
 

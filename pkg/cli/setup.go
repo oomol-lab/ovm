@@ -28,6 +28,7 @@ type Context struct {
 	BindPID         int
 	EventSocketPath string
 	PowerSaveMode   bool
+	KernelDebug     bool
 
 	Endpoint          string
 	SSHPort           int
@@ -86,6 +87,7 @@ func (c *Context) basic() error {
 	c.BindPID = bindPID
 	c.EventSocketPath = eventSocketPath
 	c.PowerSaveMode = powerSaveMode
+	c.KernelDebug = kernelDebug
 
 	if err := os.MkdirAll("/tmp/ovm", 0755); err != nil {
 		return err
