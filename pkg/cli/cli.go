@@ -24,6 +24,7 @@ var (
 	cliMode         bool
 	bindPID         int
 	powerSaveMode   bool
+	kernelDebug     bool
 )
 
 func Parse() {
@@ -42,6 +43,7 @@ func Parse() {
 	flag.BoolVar(&cliMode, "cli", false, "Run in CLI mode")
 	flag.IntVar(&bindPID, "bind-pid", 0, "OVM will exit when the bound pid exited")
 	flag.BoolVar(&powerSaveMode, "power-save-mode", false, "Enable power save mode")
+	flag.BoolVar(&kernelDebug, "kernel-debug", false, "Enable kernel debug")
 
 	flag.Parse()
 
