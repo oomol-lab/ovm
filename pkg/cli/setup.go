@@ -91,7 +91,9 @@ func (c *Context) basic() error {
 
 	// Avoid folder names being taken by files
 	// 1118 is my wife's birthday :)
-	if err := os.MkdirAll("/tmp/oomol-lab.ovm.lock.1118", 0755); err != nil {
+	lockPrefixPath := "/tmp/oomol-lab.ovm.lock.1118"
+
+	if err := os.MkdirAll(lockPrefixPath, 0755); err != nil {
 		return err
 	}
 
@@ -107,7 +109,7 @@ func (c *Context) basic() error {
 
 		sum := md5.Sum([]byte(c.ExecutablePath))
 		hash := hex.EncodeToString(sum[:])
-		c.LockFile = "/tmp/ovm/" + hash + "-" + name + ".pid"
+		c.LockFile = lockPrefixPath + "/" + hash + "-" + name + ".pid"
 	}
 
 	return nil
