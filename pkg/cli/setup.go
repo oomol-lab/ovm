@@ -89,7 +89,9 @@ func (c *Context) basic() error {
 	c.PowerSaveMode = powerSaveMode
 	c.KernelDebug = kernelDebug
 
-	if err := os.MkdirAll("/tmp/ovm", 0755); err != nil {
+	// Avoid folder names being taken by files
+	// 1118 is my wife's birthday :)
+	if err := os.MkdirAll("/tmp/oomol-lab.ovm.lock.1118", 0755); err != nil {
 		return err
 	}
 
