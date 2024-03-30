@@ -30,7 +30,7 @@ func cmd(opt *cli.Context) (string, error) {
 
 	mount := fmt.Sprintf("echo -e %s >> /mnt/overlay/etc/fstab", fstab)
 	authorizedKeys := fmt.Sprintf("mkdir -p /mnt/overlay/root/.ssh; echo %s >> /mnt/overlay/root/.ssh/authorized_keys", opt.SSHPublicKey)
-	ready := fmt.Sprintf("echo -e \"date -s @%d;\\\\necho Ready | socat - VSOCK-CONNECT:2:1026\" > /mnt/overlay/opt/ready.command", time.Now().Unix())
+	ready := fmt.Sprintf("echo -e \"date -s @%d;\\\\necho Ready | socat -v -d -d - VSOCK-CONNECT:2:1026\" > /mnt/overlay/opt/ready.command", time.Now().Unix())
 
 	return fmt.Sprintf("%s; %s; %s; %s", mount, authorizedKeys, ready, tz), nil
 }
