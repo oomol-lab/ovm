@@ -26,6 +26,10 @@ func Run(ctx context.Context, g *errgroup.Group, opt *cli.Context) error {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
+	for tag, dir := range opt.ExtendShareDir {
+		mounts.extend(tag, dir)
+	}
+
 	log, err := logger.New(opt.LogPath, opt.Name+"-vfkit")
 	if err != nil {
 		return fmt.Errorf("create vfkit logger error: %v", err)

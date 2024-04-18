@@ -35,6 +35,16 @@ var mounts = &_mounts{
 	},
 }
 
+func (m *_mounts) extend(tag, shareDir string) {
+	for _, fs := range mounts.list {
+		if fs.tag == tag || fs.shareDir == shareDir {
+			return
+		}
+	}
+
+	m.list = append(m.list, fs{tag: tag, shareDir: shareDir})
+}
+
 func (m *_mounts) toVFKit() (devices []config.VirtioDevice) {
 	for _, fs := range m.list {
 		d, _ := config.VirtioFsNew(fs.shareDir, fs.tag)

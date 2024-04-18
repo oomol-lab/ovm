@@ -29,6 +29,7 @@ type Context struct {
 	EventSocketPath string
 	PowerSaveMode   bool
 	KernelDebug     bool
+	ExtendShareDir  map[string]string
 
 	Endpoint          string
 	SSHPort           int
@@ -110,6 +111,24 @@ func (c *Context) basic() error {
 		sum := md5.Sum([]byte(c.ExecutablePath))
 		hash := hex.EncodeToString(sum[:])
 		c.LockFile = lockPrefixPath + "/" + hash + "-" + name + ".pid"
+	}
+
+	c.ExtendShareDir = make(map[string]string)
+	if extendShareDir != "" {
+		for _, item := range strings.Split(extendShareDir, ",") {
+			parts := strings.Split(item, ":")
+			if len(parts) != 2 {
+				return fmt.Errorf("invalid extend share dir: %s", item)
+			}
+
+			if info, err := os.Stat(parts[1]); err != nil {
+				return fmt.Errorf("extend share dir %s not exists: %w", parts[1], err)
+			} else if !info.IsDir() {
+				return fmt.Errorf("extend share dir %s is not a directory", parts[1])
+			}
+
+			c.ExtendShareDir[parts[0]] = parts[1]
+		}
 	}
 
 	return nil
