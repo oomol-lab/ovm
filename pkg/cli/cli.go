@@ -25,6 +25,7 @@ var (
 	bindPID         int
 	powerSaveMode   bool
 	kernelDebug     bool
+	extendShareDir  string
 )
 
 func Parse() {
@@ -44,6 +45,7 @@ func Parse() {
 	flag.IntVar(&bindPID, "bind-pid", 0, "OVM will exit when the bound pid exited")
 	flag.BoolVar(&powerSaveMode, "power-save-mode", false, "Enable power save mode")
 	flag.BoolVar(&kernelDebug, "kernel-debug", false, "Enable kernel debug")
+	flag.StringVar(&extendShareDir, "extend-share-dir", "", "Extends share directory with the guest. e.g. --extend-share-dir=host-tmp:/tmp,host-var:/var")
 
 	flag.Parse()
 
