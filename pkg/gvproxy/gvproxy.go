@@ -116,7 +116,7 @@ func Run(ctx context.Context, g *errgroup.Group, opt *cli.Context) error {
 	httpServe(ctx, g, ln, mux)
 
 	channel.NotifyGVProxyReady()
-	event.Notify(event.GVProxyReady)
+	event.NotifyApp(event.GVProxyReady)
 
 	g.Go(func() error {
 		select {

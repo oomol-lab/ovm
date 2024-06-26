@@ -88,7 +88,7 @@ func main() {
 		exit(1)
 	}
 
-	event.Notify(event.Initializing)
+	event.NotifyApp(event.Initializing)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	g, ctx := errgroup.WithContext(ctx)
@@ -159,7 +159,7 @@ func ready(ctx context.Context, g *errgroup.Group, opt *cli.Context, log *logger
 			err = rerr
 		} else {
 			channel.NotifyVMReady()
-			event.Notify(event.VMReady)
+			event.NotifyApp(event.Ready)
 		}
 
 		if cerr := conn.Close(); cerr != nil {
@@ -174,7 +174,7 @@ func ready(ctx context.Context, g *errgroup.Group, opt *cli.Context, log *logger
 }
 
 func exit(exitCode int) {
-	event.Notify(event.Exit)
+	event.NotifyApp(event.Exit)
 	for _, clean := range cleans {
 		clean()
 	}
