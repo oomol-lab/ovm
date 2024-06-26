@@ -141,13 +141,14 @@ func (c *Context) Warnf(format string, args ...any) {
 	c.Warn(fmt.Sprintf(format, args...))
 }
 
-func (c *Context) Error(message string) {
+func (c *Context) Error(message string) error {
 	c.base("ERROR", message)
 	_ = c.file.Sync()
+	return fmt.Errorf(message)
 }
 
-func (c *Context) Errorf(format string, args ...any) {
-	c.Error(fmt.Sprintf(format, args...))
+func (c *Context) Errorf(format string, args ...any) error {
+	return c.Error(fmt.Sprintf(format, args...))
 }
 
 func (c *Context) Close() {
