@@ -68,17 +68,9 @@ func main() {
 		exit(1)
 	}
 
-	{
-		if err := event.Init(opt); err != nil {
-			_ = log.Errorf("event init error: %v", err)
-			exit(1)
-		}
-
-		g := errgroup.Group{}
-		event.Subscribe(&g)
-		cleans = append(cleans, func() {
-			_ = g.Wait()
-		})
+	if err := event.Setup(opt); err != nil {
+		_ = log.Errorf("event init error: %v", err)
+		exit(1)
 	}
 
 	agent, err := sshagentsock.Start(opt.SSHAuthSocketPath, log)
