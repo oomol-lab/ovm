@@ -58,7 +58,7 @@ func ignition(ctx context.Context, g *errgroup.Group, opt *cli.Context, log *log
 			err = werr
 		} else {
 			log.Info("write ignition command success")
-			event.Notify(event.IgnitionDone)
+			event.NotifyApp(event.IgnitionDone)
 		}
 
 		if cerr := conn.Close(); cerr != nil {

@@ -17,20 +17,26 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type Name string
+type key string
 
-var (
-	Initializing     Name = "Initializing"
-	GVProxyReady     Name = "GVProxyReady"
-	IgnitionProgress Name = "IgnitionProgress"
-	IgnitionDone     Name = "IgnitionDone"
-	VMReady          Name = "VMReady"
-	Exit             Name = "Exit"
-	Error            Name = "Error"
+const (
+	kApp   key = "app"
+	kError key = "error"
+)
+
+type app string
+
+const (
+	Initializing     app = "Initializing"
+	GVProxyReady     app = "GVProxyReady"
+	IgnitionProgress app = "IgnitionProgress"
+	IgnitionDone     app = "IgnitionDone"
+	Ready            app = "Ready"
+	Exit             app = "Exit"
 )
 
 type datum struct {
-	name    Name
+	name    key
 	message string
 }
 
@@ -91,7 +97,7 @@ func Subscribe(g *errgroup.Group) {
 				}
 			}
 
-			if datum.name == Exit {
+			if datum.message == string(Exit) {
 				e.channel.Close()
 				e = nil
 				return nil
@@ -102,13 +108,14 @@ func Subscribe(g *errgroup.Group) {
 	})
 }
 
-func Notify(name Name) {
+func NotifyApp(name app) {
 	if e == nil {
 		return
 	}
 
 	e.channel.In() <- &datum{
-		name: name,
+		name:    kApp,
+		message: string(name),
 	}
 }
 
@@ -118,7 +125,7 @@ func NotifyError(err error) {
 	}
 
 	e.channel.In() <- &datum{
-		name:    Error,
+		name:    kError,
 		message: err.Error(),
 	}
 }

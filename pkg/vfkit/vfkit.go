@@ -104,7 +104,7 @@ func Run(ctx context.Context, g *errgroup.Group, opt *cli.Context) error {
 		return err
 	}
 
-	event.Notify(event.IgnitionProgress)
+	event.NotifyApp(event.IgnitionProgress)
 
 	if err := ignition(ctx, g, opt, log); err != nil {
 		log.Errorf("ignition failed: %v", err)
