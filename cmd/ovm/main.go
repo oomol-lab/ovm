@@ -6,7 +6,6 @@ package main
 import (
 	"bufio"
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -65,13 +64,13 @@ func main() {
 	}
 
 	if err := opt.Setup(); err != nil {
-		log.Errorf("setup error: %v", err)
+		_ = log.Errorf("setup error: %v", err)
 		exit(1)
 	}
 
 	{
 		if err := event.Init(opt); err != nil {
-			log.Errorf("event init error: %v", err)
+			_ = log.Errorf("event init error: %v", err)
 			exit(1)
 		}
 
@@ -84,19 +83,40 @@ func main() {
 
 	agent, err := sshagentsock.Start(opt.SSHAuthSocketPath, log)
 	if err != nil {
-		log.Errorf("start ssh agent sock error: %v", err)
+		_ = log.Errorf("start ssh agent sock error: %v", err)
 		exit(1)
 	}
 
 	event.NotifyApp(event.Initializing)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	g, ctx := errgroup.WithContext(ctx)
+	g, ctx := errgroup.WithContext(context.Background())
 
-	if err := ready(ctx, g, opt, log); err != nil {
-		log.Errorf("ready failed: %v", err)
-		cancel()
-		exit(1)
+	// ready
+	{
+		nl, err := net.Listen("unix", opt.SocketReadyPath)
+		if err != nil {
+			_ = log.Errorf("create ready socket error: %v", err)
+			exit(1)
+		}
+
+		g.Go(func() error {
+			conn, err := utils.AcceptTimeout(ctx, nl, time.After(30*time.Second))
+			if err != nil {
+				return fmt.Errorf("ready accept timeout: %v", err)
+			}
+			defer func() {
+				_ = conn.Close()
+			}()
+
+			if _, err = bufio.NewReader(conn).ReadString('\n'); err != nil {
+				return fmt.Errorf("read ready failed: %w", err)
+			}
+
+			channel.NotifyVMReady()
+			event.NotifyApp(event.Ready)
+
+			return nil
+		})
 	}
 
 	g.Go(func() error {
@@ -106,8 +126,7 @@ func main() {
 
 	g.Go(func() error {
 		waitBindPID(ctx, log, opt.BindPID)
-		cancel()
-		return nil
+		return fmt.Errorf("bind pid %d is not alive", opt.BindPID)
 	})
 
 	g.Go(func() error {
@@ -123,54 +142,20 @@ func main() {
 
 		select {
 		case sig := <-sigs:
-			log.Warnf("received %s signal, exiting...", sig)
-			cancel()
-			return errors.New("signal caught")
+			return fmt.Errorf("signal caught, received %s signal", sig)
 		case <-ctx.Done():
 			return nil
 		}
 	})
 
 	if err := g.Wait(); err != nil {
-		log.Errorf("main error: %v", err)
+		err = log.Errorf("main error: %v, reason: %v", err, context.Cause(ctx))
 		event.NotifyError(err)
 		exit(1)
 	} else {
 		log.Info("main exit")
 		exit(0)
 	}
-}
-
-func ready(ctx context.Context, g *errgroup.Group, opt *cli.Context, log *logger.Context) error {
-	nl, err := net.Listen("unix", opt.SocketReadyPath)
-	if err != nil {
-		return err
-	}
-
-	g.Go(func() error {
-		conn, err := utils.AcceptTimeout(ctx, nl, time.After(30*time.Second))
-		if err != nil {
-			log.Errorf("ready accept timeout: %v", err)
-			return err
-		}
-
-		if _, rerr := bufio.NewReader(conn).ReadString('\n'); rerr != nil {
-			log.Errorf("read ready failed: %v", rerr)
-			err = rerr
-		} else {
-			channel.NotifyVMReady()
-			event.NotifyApp(event.Ready)
-		}
-
-		if cerr := conn.Close(); cerr != nil {
-			log.Errorf("close ready connection failed: %v", cerr)
-			err = cerr
-		}
-
-		return err
-	})
-
-	return nil
 }
 
 func exit(exitCode int) {
