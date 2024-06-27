@@ -46,6 +46,10 @@ func New(vz *vz.VirtualMachine, vmC *config.VirtualMachine, log *logger.Context,
 	}
 }
 
+type powerSaveModeBody struct {
+	Enable bool `json:"enable"`
+}
+
 func (s *Restful) mux() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/info", func(w http.ResponseWriter, r *http.Request) {
@@ -104,21 +108,20 @@ func (s *Restful) mux() *http.ServeMux {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	})
-	mux.HandleFunc("/start-power-save-mode", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/power-save-mode", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPut {
 			http.Error(w, "put only", http.StatusBadRequest)
 			return
 		}
 
-		s.startPowerSaveMode()
-	})
-	mux.HandleFunc("/stop-power-save-mode", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPut {
-			http.Error(w, "put only", http.StatusBadRequest)
+		var body powerSaveModeBody
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			s.log.Warnf("Failed to decode request body: %v", err)
+			http.Error(w, "failed to decode request body", http.StatusBadRequest)
 			return
 		}
 
-		s.stopPowerSaveMode()
+		s.powerSaveMode(body.Enable)
 	})
 
 	return mux
@@ -200,12 +203,7 @@ func (s *Restful) stop() error {
 	return err
 }
 
-func (s *Restful) startPowerSaveMode() {
-	s.log.Info("request /startPowerSaveMode")
-	s.opt.PowerSaveMode = true
-}
-
-func (s *Restful) stopPowerSaveMode() {
-	s.log.Info("request /stopPowerSaveMode")
-	s.opt.PowerSaveMode = false
+func (s *Restful) powerSaveMode(enable bool) {
+	s.log.Info("request /powerSaveMode")
+	s.opt.PowerSaveMode = enable
 }
