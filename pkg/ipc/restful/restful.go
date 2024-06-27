@@ -84,7 +84,7 @@ func (s *Restful) mux() *http.ServeMux {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	})
-	mux.HandleFunc("/requestStop", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/request-stop", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "post only", http.StatusBadRequest)
 			return
@@ -104,7 +104,7 @@ func (s *Restful) mux() *http.ServeMux {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	})
-	mux.HandleFunc("/startPowerSaveMode", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/start-power-save-mode", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPut {
 			http.Error(w, "put only", http.StatusBadRequest)
 			return
@@ -112,7 +112,7 @@ func (s *Restful) mux() *http.ServeMux {
 
 		s.startPowerSaveMode()
 	})
-	mux.HandleFunc("/stopPowerSaveMode", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/stop-power-save-mode", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPut {
 			http.Error(w, "put only", http.StatusBadRequest)
 			return
