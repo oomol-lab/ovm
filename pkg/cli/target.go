@@ -16,10 +16,10 @@ import (
 )
 
 type versionsJSON struct {
-	Kernel  string `json:"kernel"`
-	Initrd  string `json:"initrd"`
-	Rootfs  string `json:"rootfs"`
-	DataImg string `json:"data_img"`
+	Kernel string `json:"kernel"`
+	Initrd string `json:"initrd"`
+	Rootfs string `json:"rootfs"`
+	Data   string `json:"data"`
 
 	path           string
 	needUpdateJSON bool
@@ -77,8 +77,8 @@ func (v *versionsJSON) get(key string) string {
 		return v.Initrd
 	case "rootfs":
 		return v.Rootfs
-	case "data_img":
-		return v.DataImg
+	case "data":
+		return v.Data
 	default:
 		return ""
 	}
@@ -93,8 +93,8 @@ func (v *versionsJSON) set(key, val string) {
 		vK = &v.Initrd
 	case "rootfs":
 		vK = &v.Rootfs
-	case "data_img":
-		vK = &v.DataImg
+	case "data":
+		vK = &v.Data
 	}
 
 	if *vK != val {
@@ -116,7 +116,7 @@ type targetContext struct {
 	versionsJSON *versionsJSON
 }
 
-func newTarget(targetPath, kernelPath, initrdPath, rootfsPath, dataImgPath, versionsPath string) (*targetContext, error) {
+func newTarget(targetPath, kernelPath, initrdPath, rootfsPath, dataPath, versionsPath string) (*targetContext, error) {
 	versionsJSON, err := newVersionsJSON(versionsPath)
 	if err != nil {
 		return nil, err
@@ -128,7 +128,7 @@ func newTarget(targetPath, kernelPath, initrdPath, rootfsPath, dataImgPath, vers
 			{"kernel", kernelPath},
 			{"initrd", initrdPath},
 			{"rootfs", rootfsPath},
-			{"data_img", dataImgPath},
+			{"data", dataPath},
 		},
 
 		versionsJSON: versionsJSON,
@@ -164,7 +164,7 @@ func (t *targetContext) copyOrCreate(src srcPath, g *errgroup.Group) {
 	distPath := path.Join(t.targetPath, filepath.Base(src.p))
 
 	g.Go(func() error {
-		if src.key == "data_img" {
+		if src.key == "data" {
 			if err := os.RemoveAll(distPath); err != nil {
 				return err
 			}
@@ -177,10 +177,10 @@ func (t *targetContext) copyOrCreate(src srcPath, g *errgroup.Group) {
 }
 
 var versionsParams = map[string]string{
-	"kernel":   "",
-	"initrd":   "",
-	"rootfs":   "",
-	"data_img": "",
+	"kernel": "",
+	"initrd": "",
+	"rootfs": "",
+	"data":   "",
 }
 
 func parseVersions() error {
