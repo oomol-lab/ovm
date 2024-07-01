@@ -73,9 +73,9 @@ At the same time, ovm will also create `tmp.img` and data.img in this directory.
 
 #### `-versions` (Required)
 
-Set versions of the kernel/initrd/rootfs/dataImg
+Set versions of the kernel/initrd/rootfs/data
 
-Format: `kernel=version,initrd=version,rootfs=version,dataImg=version`
+Format: `kernel=version,initrd=version,rootfs=version,data=version`
 
 When the version number differs from the previous one, the new file will be used to overwrite the previous file.
 
