@@ -21,6 +21,7 @@ type key string
 const (
 	kApp   key = "app"
 	kError key = "error"
+	kExit  key = "exit"
 )
 
 type app string
@@ -31,7 +32,6 @@ const (
 	IgnitionProgress app = "IgnitionProgress"
 	IgnitionDone     app = "IgnitionDone"
 	Ready            app = "Ready"
-	Exit             app = "Exit"
 )
 
 type datum struct {
@@ -91,7 +91,7 @@ func Setup(opt *cli.Context) error {
 				}
 			}
 
-			if datum.message == string(Exit) {
+			if datum.name == kExit {
 				waitDone <- struct{}{}
 				return
 			}
@@ -110,14 +110,6 @@ func NotifyApp(name app) {
 		name:    kApp,
 		message: string(name),
 	}
-
-	// wait for the event to be processed
-	// Exit event indicates the main process exit
-	if string(name) == string(Exit) {
-		<-waitDone
-		close(waitDone)
-		e.channel.Close()
-	}
 }
 
 func NotifyError(err error) {
@@ -129,4 +121,19 @@ func NotifyError(err error) {
 		name:    kError,
 		message: err.Error(),
 	}
+}
+
+func NotifyExit() {
+	if e == nil {
+		return
+	}
+
+	e.channel.In() <- &datum{
+		name:    kExit,
+		message: "",
+	}
+
+	<-waitDone
+	close(waitDone)
+	e.channel.Close()
 }

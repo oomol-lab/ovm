@@ -151,7 +151,7 @@ func main() {
 }
 
 func exit(exitCode int) {
-	event.NotifyApp(event.Exit)
+	event.NotifyExit()
 	for _, clean := range cleans {
 		clean()
 	}
