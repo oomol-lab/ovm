@@ -27,7 +27,13 @@ type stateResponse struct {
 }
 
 type infoResponse struct {
-	PodmanSocketPath string `json:"podmanSocketPath"`
+	PodmanSocketPath  string `json:"podmanSocketPath"`
+	SSHPort           int    `json:"sshPort"`
+	SSHUser           string `json:"sshUser"`
+	SSHPublicKeyPath  string `json:"sshPublicKeyPath"`
+	SSHPrivateKeyPath string `json:"sshPrivateKeyPath"`
+	SSHPublicKey      string `json:"sshPublicKey"`
+	SSHPrivateKey     string `json:"sshPrivateKey"`
 }
 
 type Restful struct {
@@ -144,7 +150,13 @@ func (s *Restful) Start(ctx context.Context, g *errgroup.Group, nl net.Listener)
 func (s *Restful) info() *infoResponse {
 	s.log.Info("request /info")
 	return &infoResponse{
-		PodmanSocketPath: s.opt.ForwardSocketPath,
+		PodmanSocketPath:  s.opt.ForwardSocketPath,
+		SSHPort:           s.opt.SSHPort,
+		SSHUser:           "root",
+		SSHPublicKeyPath:  s.opt.SSHPublicKeyPath,
+		SSHPrivateKeyPath: s.opt.SSHPrivateKeyPath,
+		SSHPublicKey:      s.opt.SSHPublicKey,
+		SSHPrivateKey:     s.opt.SSHPrivateKey,
 	}
 }
 

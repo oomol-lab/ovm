@@ -36,6 +36,7 @@ type Context struct {
 	SSHKeyPath        string
 	SSHPrivateKeyPath string
 	SSHPublicKeyPath  string
+	SSHPrivateKey     string
 	SSHPublicKey      string
 
 	ForwardSocketPath     string
@@ -208,6 +209,21 @@ func (c *Context) ssh() error {
 		}
 
 		c.SSHPublicKey = strings.TrimSpace(string(b))
+	}
+
+	{
+		f, err := os.Open(c.SSHPrivateKeyPath)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		b, err := io.ReadAll(f)
+		if err != nil {
+			return err
+		}
+
+		c.SSHPrivateKey = strings.TrimSpace(string(b))
 	}
 
 	return nil
