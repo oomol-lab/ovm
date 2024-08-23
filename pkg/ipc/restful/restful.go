@@ -162,21 +162,28 @@ func (s *Restful) mux() *http.ServeMux {
 		}
 
 		outCh := infinity.NewChannel[string]()
-		errCh := make(chan string)
-		doneCh := make(chan struct{})
+		errCh := make(chan string, 1)
+		doneCh := make(chan struct{}, 1)
 
 		go func() {
-			if err := s.exec(body.Command, outCh, errCh); err != nil {
+			if err := s.exec(r.Context(), body.Command, outCh, errCh); err != nil {
 				s.log.Warnf("Failed to execute command: %v", err)
 			}
-
-			_, _ = fmt.Fprintf(w, "event: done\n")
-			_, _ = fmt.Fprintf(w, "data: done\n\n")
-			w.(http.Flusher).Flush()
 
 			doneCh <- struct{}{}
 			outCh.Close()
 			close(errCh)
+		}()
+
+		defer func() {
+			select {
+			case <-r.Context().Done():
+				// pass
+			default:
+				_, _ = fmt.Fprintf(w, "event: done\n")
+				_, _ = fmt.Fprintf(w, "data: done\n\n")
+				w.(http.Flusher).Flush()
+			}
 		}()
 
 		for {
@@ -295,7 +302,7 @@ func (s *Restful) powerSaveMode(enable bool) {
 	s.opt.PowerSaveMode = enable
 }
 
-func (s *Restful) exec(command string, outCh *infinity.Channel[string], errCh chan string) error {
+func (s *Restful) exec(ctx context.Context, command string, outCh *infinity.Channel[string], errCh chan string) error {
 	s.log.Info("request /exec")
 
 	conf := &ssh.ClientConfig{
@@ -312,6 +319,10 @@ func (s *Restful) exec(command string, outCh *infinity.Channel[string], errCh ch
 		return fmt.Errorf("dial ssh error: %w", err)
 	}
 	defer conn.Close()
+
+	context.AfterFunc(ctx, func() {
+		_ = conn.Close()
+	})
 
 	session, err := conn.NewSession()
 	if err != nil {
