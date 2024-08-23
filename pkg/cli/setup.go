@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/oomol-lab/ovm/pkg/utils"
+	"golang.org/x/crypto/ssh"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -38,6 +39,7 @@ type Context struct {
 	SSHPublicKeyPath  string
 	SSHPrivateKey     string
 	SSHPublicKey      string
+	SSHSigner         ssh.Signer
 
 	ForwardSocketPath     string
 	SocketNetworkPath     string
@@ -224,6 +226,9 @@ func (c *Context) ssh() error {
 		}
 
 		c.SSHPrivateKey = strings.TrimSpace(string(b))
+		if c.SSHSigner, err = ssh.ParsePrivateKey(b); err != nil {
+			return fmt.Errorf("parse private key error: %w", err)
+		}
 	}
 
 	return nil

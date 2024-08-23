@@ -11,6 +11,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prashantgupta24/mac-sleep-notifier v1.0.1
 	github.com/shirou/gopsutil/v3 v3.23.12
+	golang.org/x/crypto v0.18.0
 	golang.org/x/net v0.20.0
 	golang.org/x/sync v0.5.0
 	inet.af/tcpproxy v0.0.0-20221017015627-91f861402626
@@ -20,7 +21,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/apparentlymart/go-cidr v1.1.0 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
-	github.com/google/btree v1.0.1 // indirect
+	github.com/google/btree v1.1.2 // indirect
 	github.com/google/gopacket v1.1.19 // indirect
 	github.com/insomniacslk/dhcp v0.0.0-20220504074936-1ca156eafb9f // indirect
 	github.com/linuxkit/virtsock v0.0.0-20220523201153-1a23e78aa7a2 // indirect
@@ -35,10 +36,11 @@ require (
 	github.com/tklauser/numcpus v0.7.0 // indirect
 	github.com/u-root/uio v0.0.0-20210528114334-82958018845c // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
-	golang.org/x/crypto v0.18.0 // indirect
 	golang.org/x/mod v0.13.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
-	golang.org/x/tools v0.13.0 // indirect
+	golang.org/x/tools v0.14.0 // indirect
 	gvisor.dev/gvisor v0.0.0-20230715022000-fd277b20b8db // indirect
 )
+
+replace gvisor.dev/gvisor v0.0.0-20230715022000-fd277b20b8db => gvisor.dev/gvisor v0.0.0-20231023213702-2691a8f9b1cf

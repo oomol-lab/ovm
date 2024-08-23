@@ -7,13 +7,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
+	"strings"
+	"sync"
+	"time"
 
+	"github.com/Code-Hex/go-infinity-channel"
 	"github.com/Code-Hex/vz/v3"
 	"github.com/crc-org/vfkit/pkg/config"
 	"github.com/oomol-lab/ovm/pkg/cli"
 	"github.com/oomol-lab/ovm/pkg/logger"
+	"golang.org/x/crypto/ssh"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -54,6 +60,10 @@ func New(vz *vz.VirtualMachine, vmC *config.VirtualMachine, log *logger.Context,
 
 type powerSaveModeBody struct {
 	Enable bool `json:"enable"`
+}
+
+type execBody struct {
+	Command string `json:"command"`
 }
 
 func (s *Restful) mux() *http.ServeMux {
@@ -128,6 +138,71 @@ func (s *Restful) mux() *http.ServeMux {
 		}
 
 		s.powerSaveMode(body.Enable)
+	})
+	mux.HandleFunc("/exec", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "post only", http.StatusBadRequest)
+			return
+		}
+
+		var body execBody
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			s.log.Warnf("Failed to decode request body: %v", err)
+			http.Error(w, "failed to decode request body", http.StatusBadRequest)
+			return
+		}
+
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Connection", "keep-alive")
+
+		if _, ok := w.(http.Flusher); !ok {
+			s.log.Warnf("Bowser does not support server-sent events")
+			return
+		}
+
+		outCh := infinity.NewChannel[string]()
+		errCh := make(chan string)
+		doneCh := make(chan struct{})
+
+		go func() {
+			if err := s.exec(body.Command, outCh, errCh); err != nil {
+				s.log.Warnf("Failed to execute command: %v", err)
+			}
+
+			_, _ = fmt.Fprintf(w, "event: done\n")
+			_, _ = fmt.Fprintf(w, "data: done\n\n")
+			w.(http.Flusher).Flush()
+
+			doneCh <- struct{}{}
+			outCh.Close()
+			close(errCh)
+		}()
+
+		for {
+			select {
+			case <-doneCh:
+				s.log.Warnf("Command execution finished")
+				return
+			case err := <-errCh:
+				_, _ = fmt.Fprintf(w, "event: error\n")
+				_, _ = fmt.Fprintf(w, "data: %s\n\n", encodeSSE(err))
+				w.(http.Flusher).Flush()
+				continue
+			case out := <-outCh.Out():
+				_, _ = fmt.Fprintf(w, "event: out\n")
+				_, _ = fmt.Fprintf(w, "data: %s\n\n", encodeSSE(out))
+				w.(http.Flusher).Flush()
+				continue
+			case <-r.Context().Done():
+				s.log.Warnf("Client closed connection")
+				return
+			case <-time.After(3 * time.Second):
+				_, _ = fmt.Fprintf(w, ": ping\n\n")
+				w.(http.Flusher).Flush()
+				continue
+			}
+		}
 	})
 
 	return mux
@@ -218,4 +293,85 @@ func (s *Restful) stop() error {
 func (s *Restful) powerSaveMode(enable bool) {
 	s.log.Info("request /powerSaveMode")
 	s.opt.PowerSaveMode = enable
+}
+
+func (s *Restful) exec(command string, outCh *infinity.Channel[string], errCh chan string) error {
+	s.log.Info("request /exec")
+
+	conf := &ssh.ClientConfig{
+		User:            "root",
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Auth: []ssh.AuthMethod{
+			ssh.PublicKeys(s.opt.SSHSigner),
+		},
+	}
+
+	conn, err := ssh.Dial("tcp", fmt.Sprintf("127.0.0.1:%d", s.opt.SSHPort), conf)
+	if err != nil {
+		errCh <- fmt.Sprintf("dial ssh error: %v", err)
+		return fmt.Errorf("dial ssh error: %w", err)
+	}
+	defer conn.Close()
+
+	session, err := conn.NewSession()
+	if err != nil {
+		errCh <- fmt.Sprintf("new ssh session error: %v", err)
+		return fmt.Errorf("new ssh session error: %w", err)
+	}
+	defer session.Close()
+
+	w := ch2Writer(outCh)
+	session.Stdout = w
+	stderr := recordWriter(w)
+	session.Stderr = stderr
+
+	if err := session.Run(command); err != nil {
+		newErr := fmt.Errorf("%s\n%s", stderr.LastRecord(), err)
+		errCh <- fmt.Sprintf(newErr.Error())
+		return fmt.Errorf("run ssh command error: %w", newErr)
+	}
+
+	return nil
+}
+
+type chWriter struct {
+	ch *infinity.Channel[string]
+	mu sync.Mutex
+}
+
+func (w *chWriter) Write(p []byte) (n int, err error) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.ch.In() <- string(p)
+	return len(p), nil
+}
+
+func ch2Writer(ch *infinity.Channel[string]) io.Writer {
+	return &chWriter{
+		ch: ch,
+	}
+}
+
+type writer struct {
+	w    io.Writer
+	last []byte
+}
+
+func (w *writer) Write(p []byte) (n int, err error) {
+	w.last = p
+	return w.w.Write(p)
+}
+
+func (w *writer) LastRecord() string {
+	return string(w.last)
+}
+
+func recordWriter(w io.Writer) *writer {
+	return &writer{
+		w: w,
+	}
+}
+
+func encodeSSE(str string) string {
+	return strings.ReplaceAll(strings.TrimSpace(str), "\n", "\ndata: ")
 }
