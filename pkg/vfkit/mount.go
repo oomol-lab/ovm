@@ -5,6 +5,7 @@ package vfkit
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/crc-org/vfkit/pkg/config"
 )
@@ -56,7 +57,9 @@ func (m *_mounts) toVFKit() (devices []config.VirtioDevice) {
 
 func (m *_mounts) toFSTAB() (result []string) {
 	for _, fs := range m.list {
-		fstab := fmt.Sprintf("%s %s virtiofs defaults 0 0", fs.tag, fs.shareDir)
+		// See: https://wiki.archlinux.org/title/Fstab#Filepath_spaces
+		dir := strings.ReplaceAll(fs.shareDir, " ", `\\\\040`)
+		fstab := fmt.Sprintf("%s %s virtiofs defaults 0 0", fs.tag, dir)
 		result = append(result, fstab)
 	}
 
