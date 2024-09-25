@@ -6,15 +6,20 @@ package utils
 import (
 	"fmt"
 	"net"
-	"strconv"
 )
 
 func portOccupied(port int) error {
-	ln, err := net.Listen("tcp", ":"+strconv.Itoa(port))
+	a, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("127.0.0.1:%d", port))
 	if err != nil {
-		return fmt.Errorf("port %d is occupied, %v", port, err)
+		return fmt.Errorf("resolve TCPAddr failed, %w", err)
 	}
-	defer ln.Close()
+
+	l, err := net.ListenTCP("tcp", a)
+	if err != nil {
+		return fmt.Errorf("port %d is occupied, %w", port, err)
+	}
+
+	defer l.Close()
 	return nil
 }
 
