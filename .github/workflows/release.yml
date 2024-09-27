@@ -14,12 +14,11 @@ jobs:
   release:
     runs-on: macos-13
     steps:
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: "arn:aws:iam::${{ secrets.AWS_IAM_ACCOUNT_ID }}:role/github-action-oomol-lab-ovm"
-          role-session-name: "github-action-oomol-lab-ovm"
-          aws-region: us-east-1
+      - name: Configure R2 Credentials
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.R2_OOMOL_STATIC_S3_AK }}
+          aws configure set aws_secret_access_key ${{ secrets.R2_OOMOL_STATIC_S3_SK }}
+          aws configure set region auto
 
       - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -69,5 +68,6 @@ jobs:
         run: |
           aws s3 cp \
             ./out/ \
+            --endpoint-url ${{ secrets.R2_OOMOL_STATIC_S3_ENDPOINT }} \
             s3://oomol-static/ovm-resources/ovm/$RELEASE_VERSION \
             --recursive --exclude "*" --include "ovm*"
