@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 )
 
@@ -55,7 +56,16 @@ func CreateSparseFile(p string, size int64) error {
 		return fmt.Errorf("truncate sparse file failed: %w", err)
 	}
 
-	return file.Sync()
+	if err := file.Sync(); err != nil {
+		return fmt.Errorf("sync sparse file failed: %w", err)
+	}
+
+	go func() {
+		cmd := exec.Command("xattr", "-w", "com.apple.metadata:com_apple_backup_excludeItem", "com.apple.backupd", p)
+		_ = cmd.Run()
+	}()
+
+	return nil
 }
 
 func PathExists(p string) (bool, error) {
